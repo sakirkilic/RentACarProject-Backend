@@ -1,0 +1,43 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Core.Utilities.Security.Hashing
+{
+	/* Hash işlemleri için kullanacağım aracım */
+	public class HashingHelper
+	{
+		/* Verdiğimiz parolanın Hash'ini oluşturacak ve Salt'ı ile birlikte verecek yapımız */
+		public static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+		{
+			using (var hmac = new System.Security.Cryptography.HMACSHA512())
+			{
+				passwordSalt = hmac.Key;
+				passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+			}
+		}
+
+
+		/* Gelen password'ün hash'ini oluşturarak veri tabanında ki hash ile doğrulama yapan yapımız */
+
+		public static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+		{
+			using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))  // Password hash'ini doğrula
+			{
+				var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+				for (int i = 0; i < computedHash.Length; i++)
+				{
+					if (computedHash[i] != passwordHash[i])
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+	}
+}
+
+
